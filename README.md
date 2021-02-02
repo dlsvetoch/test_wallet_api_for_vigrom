@@ -52,7 +52,7 @@ DB_PASSWORD={your_password}
 $ composer install
 $ php artisan migrate
 $ php artisan passport:instal
-$ php artisan passport:client —personal
+$ php artisan passport:client --personal --name=authToken
 $ php artisan key:generate
 $ php artisan db:seed
 ```
