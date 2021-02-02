@@ -35,7 +35,7 @@
 
 Клонировать репозиторий на свой компьютер с помощью команды 
 ```
-$ git clone https://github.com/dlsvetoch/test_api_for_vigrom_corp.git
+$ git clone
 ```
 Настройить подключение к базе данных в файле .env
 ```
