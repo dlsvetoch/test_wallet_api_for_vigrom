@@ -35,7 +35,7 @@
 
 Клонировать репозиторий на свой компьютер с помощью команды 
 ```
-$ git clone https://github.com/dlsvetoch/test_api_for_vigrom_corp.git
+$ git clone
 ```
 Настройить подключение к базе данных в файле .env
 ```
@@ -52,7 +52,7 @@ DB_PASSWORD={your_password}
 $ composer install
 $ php artisan migrate
 $ php artisan passport:instal
-$ php artisan passport:client —personal
+$ php artisan passport:client --personal --name=authToken
 $ php artisan key:generate
 $ php artisan db:seed
 ```
