@@ -3,14 +3,10 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletChange;
 use App\Models\Transaction;
-use Carbon\Carbon;
-use Faker\Generator as Faker;
-use Faker\Factory as FakerFactory;
 
 class TestDataSeeder extends Seeder
 {

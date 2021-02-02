@@ -2,10 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Http\Requests\CreateUserRequest;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Input, Response, Log;

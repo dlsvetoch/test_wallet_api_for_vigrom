@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\LoginRequest;
@@ -34,11 +31,11 @@ class AuthController extends ApiController
 
     /**
      * Login. Getting a token
-     * 
+     *
 	 * @param \App\Http\Requests\LoginRequestRequest $request
 	 * @return mixed
 	 */
-    public function login(LoginRequest $request) 
+    public function login(LoginRequest $request)
     {
         if (Auth::check()) {
             return $this->sendError('Already logged in');
@@ -60,10 +57,10 @@ class AuthController extends ApiController
 
     /**
      * Login. Delete a token
-     * 
+     *
 	 * @return mixed
 	 */
-    public function logout() 
+    public function logout()
     {
 		if (Auth::check()) {
             Auth::user()->token()->revoke();
@@ -75,7 +72,7 @@ class AuthController extends ApiController
 
     /**
      * Return auth error;
-     * 
+     *
      * @return mixed
      */
     public function authError()

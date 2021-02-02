@@ -2,22 +2,18 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Database\QueryException;
 use App\Http\Requests\GetWalletRequest;
 use App\Http\Requests\CreateWalletRequest;
 use App\Http\Requests\UpdateWalletRequest;
 use App\Http\Requests\GetTransactionSumRequest;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletChange;
 use App\Models\Transaction;
 use App\Models\Currency;
 use App\Services\CurrencyConverter\CurrencyConverter;
 use App\Exceptions\ChangeBalanceException;
-use Input, Response, Log, Exception;
+use Input, Response, Log;
 
 class WalletController extends ApiController
 {
@@ -69,7 +65,7 @@ class WalletController extends ApiController
             'currency_number_code' => $currencyNumberCode,
             'user_id'              => $userId
         ]);
-        
+
         return $this->sendResponse($wallet, 'Created', 201);
     }
 
@@ -141,24 +137,24 @@ class WalletController extends ApiController
 
         $mutableProperty = $request->get('mutable_property');
         $params = $request->get('params');
-        
+
         // -------- Change balance block --------
 
         if ($mutableProperty === Wallet::BALANCE_PROPERTY) {
             if ((int) $wallet->status !== Wallet::ACTIVE_STATUS) {
                 return $this->sendError(Transaction::INACTIVE_CHANGE_BALANCE_ERROR);
-            } 
+            }
 
             if ((float) $params['value'] <= 0) {
                 return $this->sendError(self::INCORRECT_OPERATION);
             }
 
-            $isAvailableForCredit = $params['transaction_type'] === Transaction::CREDIT_TRANSACTION && 
+            $isAvailableForCredit = $params['transaction_type'] === Transaction::CREDIT_TRANSACTION &&
                 in_array($params['reason'], Transaction::CREDIT_TRANSACTION_REASONS);
 
-            $isAvailableForDebit = $params['transaction_type'] === Transaction::DEBIT_TRANSACTION && 
+            $isAvailableForDebit = $params['transaction_type'] === Transaction::DEBIT_TRANSACTION &&
                 in_array($params['reason'], Transaction::DEBIT_TRANSACTION_REASONS);
-            
+
             if (!$isAvailableForCredit && !$isAvailableForDebit) {
                 return $this->sendError(self::INCORRECT_OPERATION);
             }
@@ -166,24 +162,24 @@ class WalletController extends ApiController
             $currency = Currency::where('code', $params['currency'])->first();
 
             try {
-                /* 
+                /*
                 | Обязательный метод по тех. заданию. По скольку laravel имеет неявную привязку моделей,
-                | параметр id заменен на \App\Models\Wallet. 
+                | параметр id заменен на \App\Models\Wallet.
                 */
                 $wallet = $this->changeBalance($wallet, $params['transaction_type'], $params['value'], $currency, $params['reason']);
                 $wallet->save();
             } catch (ChangeBalanceException $changeBalanceException) {
-                $transaction = Transaction::create([ 
-                    'transaction_type'     => $params['transaction_type'], 
-                    'value'                => $params['value'], 
+                Transaction::create([
+                    'transaction_type'     => $params['transaction_type'],
+                    'value'                => $params['value'],
                     'reason'               => $params['reason'],
-                    'currency_number_code' => $wallet->currency_number_code, 
-                    'status_code'          => Transaction::FAILED_STATUS, 
+                    'currency_number_code' => $wallet->currency_number_code,
+                    'status_code'          => Transaction::FAILED_STATUS,
                     'status_description'   => $changeBalanceException->getMessage(),
                     'wallet_id'            => $wallet->id
                 ]);
 
-                $walletChange = WalletChange::create([
+                WalletChange::create([
                     'mutable_property' => Wallet::BALANCE_PROPERTY,
                     'is_transaction'   => true,
                     'successfully'     => false,
@@ -191,22 +187,22 @@ class WalletController extends ApiController
                     'wallet_id'        => $wallet->id,
                     'transaction_id'   => $transaction->id,
                 ]);
-            
+
                 return $this->sendError(Transaction::INSUFFICIENT_FUNDS_ERROR);
             }
 
-            $description = $params['transaction_type'] === Transaction::DEBIT_TRANSACTION ? 
+            $description = $params['transaction_type'] === Transaction::DEBIT_TRANSACTION ?
                 Transaction::SUCCESSFUL_DEBIT_TRANSACTION :
                 Transaction::SUCCESSFUL_CREDIT_TRANSACTION;
 
 
-            $transaction = Transaction::create([ 
-                'transaction_type'     => $params['transaction_type'], 
-                'value'                => $params['value'], 
+            $transaction = Transaction::create([
+                'transaction_type'     => $params['transaction_type'],
+                'value'                => $params['value'],
                 'reason'               => $params['reason'],
-                'currency_number_code' => $wallet->currency_number_code, 
-                'status_code'          => Transaction::SUCCESSED_STATUS, 
-                'status_description'   => Transaction::SUCCESSFUL_CREDIT_TRANSACTION,
+                'currency_number_code' => $wallet->currency_number_code,
+                'status_code'          => Transaction::SUCCESSED_STATUS,
+                'status_description'   => $description,
                 'wallet_id'            => $wallet->id
             ]);
 
@@ -217,8 +213,8 @@ class WalletController extends ApiController
                 'wallet_id'        => $wallet->id,
                 'transaction_id'   => $transaction->id,
             ]);
-        
-            return $this->sendResponse(['transaction' => $transaction, 'wallet_change' => $walletChange], 'Changed', 200);
+
+            return $this->sendResponse(['wallet_change' => $walletChange], 'Changed', 200);
         }
 
         // -------- Change currency block --------
@@ -230,7 +226,7 @@ class WalletController extends ApiController
             if ($newCurrency->code === $oldCurrency->code) {
                 return $this->sendError(self::PROPERTY_ASSIGNED_ERROR);
             }
-            
+
             $wallet->balance = $this->convertWalletCurrency($wallet, $newCurrency, $wallet->balance);
             $wallet->currency_number_code = $newCurrency->number_code;
 
@@ -243,8 +239,8 @@ class WalletController extends ApiController
                 'successfully'     => true,
                 'wallet_id'        => $wallet->id,
             ]);
-            
-            return $this->sendResponse([$newCurrency->code, $oldCurrency->code], 'Changed', 200);
+
+            return $this->sendResponse(['wallet_change' => $walletChange], 'Changed', 200);
         }
 
         // -------- Change status block --------
@@ -266,13 +262,13 @@ class WalletController extends ApiController
                 'wallet_id'        => $wallet->id,
             ]);
 
-            return $this->sendResponse(null, 'Changed', 200);
+            return $this->sendResponse(['wallet_change' => $walletChange], 'Changed', 200);
         }
     }
 
     /**
      * Change balance of the wallet
-     * 
+     *
      * @param \App\Models\Wallet $wallet
      * @param string $transactionType
      * @param float $value
@@ -291,7 +287,7 @@ class WalletController extends ApiController
 
     /**
      * Convert request value to wallet currency
-     * 
+     *
      * @param \App\Models\Wallet $wallet
      * @param \App\Models\Currency $currency
      * @param float $value
@@ -302,11 +298,11 @@ class WalletController extends ApiController
         if ($wallet->currency->code === Currency::CURRENCY_IN_RUB && $currency->code === Currency::CURRENCY_IN_USD) {
             $value = CurrencyConverter::convertUSDToRUB($value);
 		}
-		
+
 		if ($wallet->currency->code === Currency::CURRENCY_IN_USD && $currency->code === Currency::CURRENCY_IN_RUB) {
 			$value = CurrencyConverter::convertRUBToUSD($value);
         }
-        
+
         return $value;
     }
 }

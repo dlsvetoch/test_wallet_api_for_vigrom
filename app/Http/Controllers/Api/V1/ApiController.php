@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ApiRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
 class ApiController extends Controller
 {

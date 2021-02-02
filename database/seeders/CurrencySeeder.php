@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class CurrencySeeder extends Seeder
 {
@@ -15,7 +14,7 @@ class CurrencySeeder extends Seeder
      */
     public function run()
     {
-        
+
         $currencies = [
             [
                 'code' => 'USD',
