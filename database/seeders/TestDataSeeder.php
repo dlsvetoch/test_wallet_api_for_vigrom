@@ -31,7 +31,7 @@ class TestDataSeeder extends Seeder
         ->create();
 
         foreach ($transactions as $transaction) {
-            $walletChanges = WalletChange::factory()
+            WalletChange::factory()
             ->for($wallet)
             ->for($transaction)
             ->create([

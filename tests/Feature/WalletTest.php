@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Illuminate\Support\Facades\Artisan;
 use Laravel\Passport\Passport;
 use App\Models\User;
 use App\Models\Wallet;
@@ -26,7 +24,7 @@ class WalletTest extends TestCase
         $this->artisan('db:seed');
 
         $this->user = User::find(1);
-        
+
         Passport::actingAs(
             $this->user,
             ['create-servers']
@@ -42,7 +40,7 @@ class WalletTest extends TestCase
      */
     public function testGetWallets()
     {
-        $response = $this->get('/api/v1/wallets')
+        $this->get('/api/v1/wallets')
             ->assertStatus(200);
     }
 
@@ -53,14 +51,14 @@ class WalletTest extends TestCase
      */
     public function testGetWallet()
     {
-        $response = $this->get('/api/v1/wallets/' . $this->wallet->id)
+        $this->get('/api/v1/wallets/' . $this->wallet->id)
             ->assertStatus(200);
 
-        $response = $this->get('/api/v1/wallets/2')
+        $this->get('/api/v1/wallets/2')
             ->assertStatus(404);
 
-        $newUser = $this->createNewUserAndLogin();
-        $response = $this->get('/api/v1/wallets/' . $this->wallet->id)
+        $this->createNewUserAndLogin();
+        $this->get('/api/v1/wallets/' . $this->wallet->id)
             ->assertStatus(400);
     }
 
@@ -71,14 +69,14 @@ class WalletTest extends TestCase
      */
     public function testGetWalletBalance()
     {
-        $response = $this->get('/api/v1/wallets/' . $this->wallet->id . '/balance')
+        $this->get('/api/v1/wallets/' . $this->wallet->id . '/balance')
             ->assertStatus(200);
 
-        $response = $this->get('/api/v1/wallets/2/balance')
+        $this->get('/api/v1/wallets/2/balance')
             ->assertStatus(404);
 
-        $newUser = $this->createNewUserAndLogin();
-        $response = $this->get('/api/v1/wallets/1/balance')
+        $this->createNewUserAndLogin();
+        $this->get('/api/v1/wallets/1/balance')
             ->assertStatus(400);
     }
 
@@ -89,16 +87,16 @@ class WalletTest extends TestCase
      */
     public function testGetWalletTransactionSum()
     {
-        $response = $this->get('/api/v1/wallets/' . $this->wallet->id . '/transactions/sum')
+        $this->get('/api/v1/wallets/' . $this->wallet->id . '/transactions/sum')
             ->assertStatus(200);
 
-        $response = $this->get('/api/v1/wallets/' . $this->wallet->id . '/transactions/sum?interval=week')
+        $this->get('/api/v1/wallets/' . $this->wallet->id . '/transactions/sum?interval=week')
             ->assertStatus(200);
 
         $response = $this->get('/api/v1/wallets/2/transactions/sum?interval=week');
         $response->assertStatus(404);
 
-        $newUser = $this->createNewUserAndLogin();
+        $this->createNewUserAndLogin();
         $response = $this->get('/api/v1/wallets/' . $this->wallet->id . '/transactions/sum?interval=week');
         $response->assertStatus(400);
     }
@@ -110,9 +108,9 @@ class WalletTest extends TestCase
      */
     public function testCreateNewWallet()
     {
-        $user = $this->createNewUserAndLogin();
+        $this->createNewUserAndLogin();
 
-        $response = $this->json('POST', 'api/v1/wallets', ['currency' => 'RUB'])
+        $this->json('POST', 'api/v1/wallets', ['currency' => 'RUB'])
             ->assertStatus(201);
 
         Passport::actingAs(
@@ -120,7 +118,7 @@ class WalletTest extends TestCase
             ['create-servers']
         );
 
-        $response = $this->json('POST', 'api/v1/wallets', ['currency' => 'RUB'])
+        $this->json('POST', 'api/v1/wallets', ['currency' => 'RUB'])
             ->assertStatus(400);
     }
 
@@ -193,7 +191,7 @@ class WalletTest extends TestCase
             ],
         ]);
         $response->assertStatus(400);
-        
+
         /* An attempt to change the balance of an inactive wallet */
         $this->wallet->status = Wallet::INACTIVE_STATUS;
         $this->wallet->save();

@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
      * @return void
      */
     public function run()
-    {   
+    {
         $this->call(CurrencySeeder::class);
-        $this->call(TestdataSeeder::class);
+        $this->call(TestDataSeeder::class);
     }
 }

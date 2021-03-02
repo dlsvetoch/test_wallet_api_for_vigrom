@@ -6,6 +6,7 @@ use App\Http\Requests\GetWalletRequest;
 use App\Http\Requests\CreateWalletRequest;
 use App\Http\Requests\UpdateWalletRequest;
 use App\Http\Requests\GetTransactionSumRequest;
+use App\Services\CurrencyConverter\Recipients\CenterBankRecipient;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Wallet;
 use App\Models\WalletChange;
@@ -169,7 +170,7 @@ class WalletController extends ApiController
                 $wallet = $this->changeBalance($wallet, $params['transaction_type'], $params['value'], $currency, $params['reason']);
                 $wallet->save();
             } catch (ChangeBalanceException $changeBalanceException) {
-                Transaction::create([
+                $transaction = Transaction::create([
                     'transaction_type'     => $params['transaction_type'],
                     'value'                => $params['value'],
                     'reason'               => $params['reason'],
@@ -295,12 +296,15 @@ class WalletController extends ApiController
      */
     protected function convertWalletCurrency(Wallet $wallet, Currency $currency, float $value)
     {
+        $recipient = new CenterBankRecipient();
+        $converter = new CurrencyConverter($recipient);
+
         if ($wallet->currency->code === Currency::CURRENCY_IN_RUB && $currency->code === Currency::CURRENCY_IN_USD) {
-            $value = CurrencyConverter::convertUSDToRUB($value);
+            $value = $converter->convertUSDToRUB($value);
 		}
 
 		if ($wallet->currency->code === Currency::CURRENCY_IN_USD && $currency->code === Currency::CURRENCY_IN_RUB) {
-			$value = CurrencyConverter::convertRUBToUSD($value);
+			$value = $converter->convertRUBToUSD($value);
         }
 
         return $value;

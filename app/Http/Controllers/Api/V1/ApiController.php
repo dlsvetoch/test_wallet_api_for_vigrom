@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 class ApiController extends Controller
 {
     const ACCESS_DENIED_ERROR      = 'Access denied.';
-    const AVAILABLE_FEATURES_ERROR = 'This feature is not yet available.';
     const INCORRECT_OPERATION      = 'Incorrect operation.';
     const PROPERTY_ASSIGNED_ERROR  = 'The property has already been assigned';
 
@@ -42,23 +41,6 @@ class ApiController extends Controller
 		$this->model->fill($data)->push();
 
 		return $this->sendResponse(null, 'Created', 201);
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function getById($id)
-    {
-        $entity = $this->model->find($entityId);
-
-		if (!$entity) {
-			return $this->sendError('Not Found', 404);
-		}
-
-		return $this->sendResponse($entity, 'OK', 200);
     }
 
     /**
